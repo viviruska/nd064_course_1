@@ -1,7 +1,13 @@
 from flask import Flask
 from flask import json
+import logging
 
 app = Flask(__name__)
+
+
+def hello_logging(endpoint):
+    logger = logging.getLogger('hello')
+    logger.info(f'{endpoint} endpoint was reached')
 
 @app.route("/")
 def hello():
@@ -10,10 +16,14 @@ def hello():
 @app.route('/status')
 def status():
     """
-    should return an HTTP 200 status code
-    should return a JSON response
-    should return a response similar to this example: result: OK - healthy
+    - should return an HTTP 200 status code
+    - should return a JSON response
+    - should return a response similar to this example: result: OK - healthy
+    - A log line should be recorded the timestamp and the requested endpoint 
+      e.g. "{{TIMESTAMP}}, {{ ENDPOINT_NAME}} endpoint was reached"
     """
+    hello_logging('status')
+
     data = {
         "result": "OK - healthy"
     }
@@ -32,6 +42,8 @@ def healthcheck():
     should return a JSON response
     should return a response similar to this example: data: {UserCount: 140, UserCountActive: 23}
     """
+    hello_logging('metrics')
+
     data = {
         "status": "success",
         "code": 0,
@@ -49,4 +61,8 @@ def healthcheck():
     return response
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True)
+    # Stream logs to a file
+    FORMAT = '%(asctime)s : %(message)s'
+    logging.basicConfig(filename='app.log', level=logging.DEBUG, format=FORMAT)
+    
+    app.run(host='0.0.0.0')
